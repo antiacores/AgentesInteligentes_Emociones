@@ -6,7 +6,11 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 # Ruta de la carpeta de datasets
-dataset_path = ''
+dataset_path = "Proyecto_Emociones_AntiaAntonioSofMauro/dataset"
+
+# Ruta de las carpetas de train y validation
+train_path = os.path.join(dataset_path, "train")
+validation_path = os.path.join(dataset_path, "validation")
 
 # Nombres de las clases
 class_names = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
@@ -19,27 +23,22 @@ data_augmentation = tf.keras.Sequential([
     tf.keras.layers.RandomBrightness(0.2)
 ])
 
-# Crear dataset desde la carpeta "datasets" y dividir en conjunto de entrenamiento y validación
+# Cargar el dataset de entrenamiento
 train_dataset = tf.keras.preprocessing.image_dataset_from_directory(
-    dataset_path,
+    train_path,
     image_size=(150, 150),
     batch_size=32,
     label_mode='int',
-    class_names=class_names,
-    validation_split=0.2,
-    subset="training",
-    seed=123
+    class_names=class_names
 )
 
+# Cargar el dataset de validación
 val_dataset = tf.keras.preprocessing.image_dataset_from_directory(
-    dataset_path,
+    validation_path,
     image_size=(150, 150),
     batch_size=32,
     label_mode='int',
-    class_names=class_names,
-    validation_split=0.2,
-    subset="validation",
-    seed=123
+    class_names=class_names
 )
 
 # Aplicar aumento de datos solo al conjunto de entrenamiento
@@ -81,7 +80,7 @@ early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3
 # Entrenar el modelo con aumento de datos y Early Stopping
 model_history = model.fit(train_dataset, validation_data=val_dataset, epochs=10, callbacks=[early_stopping])
 
-model.save("InceptionV3_AAA.h5")
+model.save("ProjectModel.h5")
 
 # Evaluar el modelo
 y_true, y_pred = [], []
