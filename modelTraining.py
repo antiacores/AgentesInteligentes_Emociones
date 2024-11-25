@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 # Ruta de la carpeta de datasets
-dataset_path = "Proyecto_Emociones_AntiaAntonioSofMauro/dataset"
+dataset_path = "dataset"
 
 # Ruta de las carpetas de train y validation
 train_path = os.path.join(dataset_path, "train")
@@ -94,6 +94,7 @@ conf_matrix = confusion_matrix(y_true, y_pred)
 disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=class_names)
 disp.plot(cmap=plt.cm.Blues)
 plt.title("Matriz de Confusión")
+plt.savefig('matriz')
 plt.show()
 
 # Graficar precisión y pérdida
@@ -114,5 +115,5 @@ plt.title('Pérdida')
 plt.xlabel('Épocas')
 plt.ylabel('Pérdida')
 plt.legend()
-
+plt.savefig('loss')
 plt.show()
