@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify
 import tensorflow as tf
 import numpy as np
 import cv2
-
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 
 try:
     model = tf.keras.models.load_model('model.h5')
@@ -68,7 +69,8 @@ def predict():
             'probabilities': {
                 emotion: float(prob)
                 for emotion, prob in zip(emotions, prediction[0])
-            }
+            },
+            'recommendation': 'x',
         }
 
         return jsonify(result)
