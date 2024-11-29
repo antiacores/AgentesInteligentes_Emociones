@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 # Ruta de la carpeta de datasets
-dataset_path = "dataset"
+dataset_path = "../dataset"
 
 # Ruta de las carpetas de train y validation
 train_path = os.path.join(dataset_path, "train")

@@ -9,9 +9,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 from nltk.corpus import stopwords
 import re
-import kagglehub
 import pandas as pd
 import os
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.callbacks import EarlyStopping
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -36,10 +37,13 @@ dataset['Feeling'] = dataset['Feeling'].apply(lambda x: 1 if x == "positive" els
 sentences = dataset['cleaned_tweets'].tolist()
 
 
-model_w2v = Word2Vec(sentences ,
-                     min_count=1,
-                     vector_size=100,
-                     window=5)
+model_w2v = Word2Vec(sentences, 
+                     vector_size=200,  # Aumentar dimensión del vector
+                     window=5,
+                     min_count=5,  # Ignorar palabras poco frecuentes
+                     sg=1,  # Skip-gram para mejor representación semántica
+                     epochs=50)
+
 
 def sentence_to_vector(sentence):
     valid_words = [model_w2v.wv[word] for word in sentence if word in model_w2v.wv]
@@ -56,17 +60,16 @@ x_vectors = scaler.fit_transform(x_vectors)
 
 x_train, x_test, y_train, y_test = train_test_split(x_vectors, y, test_size=0.2, random_state=42)
 
-model = tf.keras.models.Sequential(
-   [
-    tf.keras.layers.Dense(1024, activation='relu', input_shape=(x_train.shape[1],)),
-    tf.keras.layers.Dense(512, 'relu'),
-    tf.keras.layers.Dense(258, 'relu'),
-    tf.keras.layers.Dense(258, 'relu'),
-    tf.keras.layers.Dense(128, 'relu'),
-    tf.keras.layers.Dense(128, 'relu'),
+
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Dense(1024, activation='relu', input_shape=(x_train.shape[1],), kernel_regularizer=l2(0.01)),
+    tf.keras.layers.Dropout(0.5),  # Añadir dropout
+    tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=l2(0.01)),
+    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(1, activation='sigmoid')
-   ]
-)
+])
+
 
 # Compile the model
 model.compile(optimizer='adam',
@@ -74,12 +77,15 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 
 # Train the model
-model_history = model.fit(x_train, y_train,
-              epochs=30,
-              batch_size=4,
-              validation_data=(x_test, y_test))
+model_history = early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
-model.save("model.h5")
+model_history = model.fit(x_train, y_train,
+                          epochs=100,
+                          batch_size=32,
+                          validation_data=(x_test, y_test),
+                          callbacks=[early_stop])
+
+model.save("model_text.h5")
 
 # Evaluate the model
 loss, accuracy = model.evaluate(x_test, y_test)
